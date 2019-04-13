@@ -3,6 +3,7 @@
 #include <assert.h>
 #include <stdio.h>
 
+#define ERROR -1
 /** TODO */
 typedef struct node_t {
     void *key;
@@ -49,15 +50,17 @@ Map mapCreate(copyMapDataElements copyDataElement,
     map->freeData = freeDataElement;
     map->freeKey = freeKeyElement;
     map->compareKey = compareKeyElements;
-<<<<<<< HEAD
 }
 
 int mapGetSize(Map map){
     if (map==NULL){
         return ERROR;
     }
-    int counter=1;
-    Node next_ptr=(*(map->base))->next;
+    int counter=0;
+    Node next_ptr=map->base;
+    if(next_ptr==NULL){
+        return 0;
+    }
     while(next_ptr!=NULL){
         counter+=1;
         next_ptr=next_ptr->next;
@@ -70,7 +73,7 @@ bool mapContains(Map map, MapKeyElement element){
     if(map==NULL || element==NULL){
         return false;
     }
-    Node first_node=(*(map->base));
+    Node first_node=map->base;
     MapKeyElement current_key=first_node->key;
     Node next_node=first_node->next;
     while(next_node!=NULL){
@@ -86,7 +89,7 @@ MapResult mapClear(Map map){
     if(map==NULL){
         return MAP_NULL_ARGUMENT;
     }
-    Node node=(*map->base);
+    Node node=map->base;
     while(node!=NULL){
         MapDataElement node_data=node->data;
         MapKeyElement  node_key=node->key;
@@ -97,7 +100,7 @@ MapResult mapClear(Map map){
         node=next_node;
 
     }
-    *map->base=NULL;
+    map->base=NULL;
     return MAP_SUCCESS;
 
 }
@@ -112,8 +115,32 @@ void mapDestroy(Map map){
 }
 
 Map mapCopy(Map map){
+    if(map==NULL) {
+        return NULL;
+    }
 
-=======
+    copyMapDataElements newCopyData=map->copyData;
+    copyMapKeyElements newCopyKey=map->copyKey;
+    freeMapDataElements newFreeData=map->freeData;
+    freeMapKeyElements newFreeKey=map->freeKey;
+    compareMapKeyElements newCompareKey=map->compareKey;
+    Map new_map=mapCreate(newCopyData,newCopyKey,newFreeData,newFreeKey,
+                          newCompareKey);
+    MAP_FOREACH(MapKeyElement, iterator, map){
+        MapDataElement data_ptr=mapGet(map,iterator);
+        MapDataElement new_data=malloc(sizeof(*new_data));
+        if(new_data==NULL){
+            return NULL;
+        }
+        MapKeyElement new_key=malloc(sizeof(*new_key));
+        if(new_key==NULL){
+            return NULL;
+        }
+        new_data=map->copyData(data_ptr);
+        new_key=map->copyKey(iterator);
+        mapPut(new_map,new_key,new_data);
+    }
+
     return map;
 }
 
@@ -158,20 +185,25 @@ MapDataElement mapGet(Map map, MapKeyElement keyElement){
     if((!keyElement) || (!map)){
         return NULL;
     }
-    Node iter = malloc(sizeof(*iter));
+    /*Node iter = malloc(sizeof(*iter));
     if(!iter) {
         free(iter);
         return NULL;
     }
-    iter = map->base;
+     */
+    Node iter = map->base;
     while(iter->next){
         if (map->compareKey(iter->key,keyElement) == 0) {
-            free(iter);
+
+            //free(iter);
             return iter->data;
         }
         iter = iter->next;
     }
-    free(iter);
+    //check last Node
+    if (map->compareKey(iter->key,keyElement) == 0) {
+        return iter->data;
+    }
     return NULL;
 }
 
@@ -210,5 +242,4 @@ MapKeyElement mapGetNext(Map map){
     }
     map->node_iterator = map->node_iterator->next;
     return map->node_iterator->key;
->>>>>>> master
 }
