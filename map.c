@@ -4,14 +4,14 @@
 #include <stdio.h>
 
 #define ERROR -1
-/** TODO */
+
 typedef struct node_t {
     void *key;
     void *data;
     struct node_t *next;
 } *Node;
 
-/** TODO */
+
 struct Map_t {
     Node base;
     Node node_iterator;
